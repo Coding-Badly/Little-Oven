@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Exit immediately on non-zero return.
+set -e
+
+# Use the return value of any command that fails.
+set -o pipefail
+
+# Error on unset variables.
+set -u
+
+# Output each command before running.
+set -x
+
+# Where we get stuff.
+if [ -z ${LOS_BASE_URL+x} ]; then
+  LOS_BASE_URL=https://raw.githubusercontent.com/Coding-Badly/Little-Oven/master/pi
+fi
+
+# Where our work stuff goes.
+if [ -z ${LOS_ROOT+x} ]; then
+  LOS_ROOT=/home/pi/rds
+fi
+
+# Don't fail if the directory already exists.
+mkdir $LOS_ROOT || true
+
+# Create the service description.
+cat > $LOS_ROOT/los.service << EOL
+[Unit]
+Description=RFID-KeyMaster Setup
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u los.py
+WorkingDirectory=$LOS_ROOT
+StandardOutput=inherit
+StandardError=inherit
+#User=pi
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Fetch the actual code.
+curl -s "$LOS_BASE_URL/los.py" > $LOS_ROOT/los.py
+
+# Create and enable the los.service.
+sudo cp $LOS_ROOT/los.service /etc/systemd/system/los.service
+sudo systemctl enable los.service
+# sudo systemctl start los.service  # rmv
+
+# Start it running.
+# fix 
+sudo reboot
