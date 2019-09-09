@@ -271,7 +271,11 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # git clone git@github.com:Coding-Badly/Little-Oven.git /home/pi/Little-Oven
         # git clone https://github.com/Coding-Badly/Little-Oven.git /home/pi/Little-Oven
         subprocess.run(['git','clone','https://github.com/Coding-Badly/Little-Oven.git','/home/pi/Little-Oven'], check=True)
-        subprocess.run(['git','checkout','-t','remotes/origin/master'], cwd='/home/pi/Little-Oven', check=True)
+        try:
+            subprocess.run(['git','checkout','-t','remotes/origin/maste'], cwd='/home/pi/Little-Oven', stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as exc:
+            if not "already exists" in exc.stderr.decode("utf-8"):
+                raise
         # Change the remote url to use ssh.
         # git remote set-url origin git@github.com:Coding-Badly/Little-Oven.git
         subprocess.run(['git','remote','set-url','origin','git@github.com:Coding-Badly/Little-Oven.git'], cwd='/home/pi/Little-Oven', check=True)
