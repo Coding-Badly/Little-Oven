@@ -8,6 +8,8 @@
 
 curl -s "https://raw.githubusercontent.com/Coding-Badly/Little-Oven/master/pi/los" | bash
 
+journalctl -u los.service
+
   ----------------------------------------------------------------------------
 
   Copyright 2019 Brian Cook (aka Coding-Badly)
@@ -272,7 +274,7 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # git clone https://github.com/Coding-Badly/Little-Oven.git /home/pi/Little-Oven
         subprocess.run(['git','clone','https://github.com/Coding-Badly/Little-Oven.git','/home/pi/Little-Oven'], check=True)
         try:
-            subprocess.run(['git','checkout','-t','remotes/origin/maste'], cwd='/home/pi/Little-Oven', stderr=subprocess.PIPE, check=True)
+            subprocess.run(['git','checkout','-t','remotes/origin/master'], cwd='/home/pi/Little-Oven', stderr=subprocess.PIPE, check=True)
         except subprocess.CalledProcessError as exc:
             if not "already exists" in exc.stderr.decode("utf-8"):
                 raise
@@ -285,10 +287,10 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
             subprocess.run(['pip','install','-U','-r',str(path_requirements)], check=True)
         # Fix ownership of the Little-Oven repository.
         subprocess.run(['chown','-R','pi:pi','/home/pi/Little-Oven'], check=True)
-        # # Prepare the cache directory.
-        # dm = DirectoryMaker(default_final_mode=0o755)
-        # path_cache = pathlib.Path('/var/cache/Dallas Makerspace/Little-Oven')
-        # dm.mkdir(path_cache, parents=True)
+        # Prepare the cache directory.
+        dm = DirectoryMaker(default_final_mode=0o755)
+        path_cache = pathlib.Path('/var/cache/Rowdy Dog Software/Little-Oven/pans')
+        dm.mkdir(path_cache, parents=True)
         go_again = True
         csm.increment_current_step()
     elif csm.get_current_step() == 17:
@@ -298,7 +300,40 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # need_reboot = True
         go_again = True
         csm.increment_current_step()
-    #elif csm.get_current_step() == 18:
+    elif csm.get_current_step() == 18:
+        wall_and_print('Install Rust.', csm.get_current_step())
+        path_rustup_rs = pathlib.Path('rustup.sh')
+        simple_get('https://sh.rustup.rs', path_rustup_rs)
+        subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
+        path_rustup_rs.unlink()
+        # So the path is correct enabling Cargo and Rust to be used in subsequent steps.
+        need_reboot = True
+        csm.increment_current_step()
+    elif csm.get_current_step() == 19:
+        wall_and_print('Install VeraCrypt.', csm.get_current_step())
+        # Prepare a directory for the VeraCrypt files.
+        dm = DirectoryMaker(default_final_mode=0o755)
+        path_temp = pathlib.Path('./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW')
+        dm.mkdir(path_temp, parents=True)
+        # Download the install script
+        path_tar_bz2 = path_temp / veracrypt-setup.tar.bz2
+        simple_get('https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2', path_tar_bz2)
+        # Extract the contents
+        subprocess.run(['tar','xvfj',str(path_tar_bz2),'-C',str(path_temp)], check=True)
+        path_setup = path_temp / 'veracrypt-1.21-setup-console-armv7'
+        # Run the install script
+        subprocess.run(['bash',str(path_setup),'--quiet'], check=True)
+        # Remove the temporary directory
+        subprocess.run(['rm','-rf',str(path_temp)], check=True)
+        # mkdir veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
+        # wget --output-document=./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2
+        # tar xvfj ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 -C ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
+        # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --check
+        # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --quiet
+        # rm -rf veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
+        go_again = True
+        csm.increment_current_step()
+    #elif csm.get_current_step() == 20:
     #    wall_and_print('One last reboot for good measure.', csm.get_current_step())
     #    need_reboot = True
     #    csm.increment_current_step()
