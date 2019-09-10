@@ -307,8 +307,8 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
         path_rustup_rs.unlink()
         # So the path is correct enabling Cargo and Rust to be used in subsequent steps.
-        need_reboot = True
-        csm.increment_current_step()
+        #need_reboot = True
+        #csm.increment_current_step()
     elif csm.get_current_step() == 19:
         wall_and_print('Install VeraCrypt.', csm.get_current_step())
         # Prepare a directory for the VeraCrypt files.
@@ -316,7 +316,7 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         path_temp = pathlib.Path('./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW')
         dm.mkdir(path_temp, parents=True)
         # Download the install script
-        path_tar_bz2 = path_temp / veracrypt-setup.tar.bz2
+        path_tar_bz2 = path_temp / 'veracrypt-setup.tar.bz2'
         simple_get('https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2', path_tar_bz2)
         # Extract the contents
         subprocess.run(['tar','xvfj',str(path_tar_bz2),'-C',str(path_temp)], check=True)
@@ -331,8 +331,8 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --check
         # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --quiet
         # rm -rf veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
-        go_again = True
-        csm.increment_current_step()
+        #go_again = True
+        #csm.increment_current_step()
     #elif csm.get_current_step() == 20:
     #    wall_and_print('One last reboot for good measure.', csm.get_current_step())
     #    need_reboot = True
