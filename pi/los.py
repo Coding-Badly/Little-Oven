@@ -318,6 +318,7 @@ then
     echo "Have Rust."
 else
     echo "No Rust."
+    rustup.sh
 fi
 """  # .encode("ascii")
         path_check_for_rust = pathlib.Path('/etc/profile.d/check_for_rust.sh')
