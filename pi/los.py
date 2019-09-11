@@ -313,22 +313,15 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # Write the following to /etc/profile.d/check_for_rust.sh and make it
         # executable.
         check_for_rust = """#!/bin/bash
-if [ -e $HOME/.cargo ]
-then
-    echo "Have Rust."
-else
-    echo "No Rust."
-    rustup.sh
+if [ ! -e $HOME/.cargo ]
+    rustup.sh -y
 fi
-"""  # .encode("ascii")
+"""
         path_check_for_rust = pathlib.Path('/etc/profile.d/check_for_rust.sh')
         path_check_for_rust.write_text(check_for_rust)
         path_check_for_rust.chmod(MODE_EXECUTABLE)
-        #subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
-        #path_rustup_rs.unlink()
-        # So the path is correct enabling Cargo and Rust to be used in subsequent steps.
-        #need_reboot = True
-        #csm.increment_current_step()
+        go_again = True
+        csm.increment_current_step()
     elif csm.get_current_step() == 19:
         wall_and_print('Install VeraCrypt.', csm.get_current_step())
         # Prepare a directory for the VeraCrypt files.
@@ -344,7 +337,7 @@ fi
         # Run the install script
         subprocess.run(['bash',str(path_setup),'--quiet'], check=True)
         # Remove the temporary directory
-        subprocess.run(['rm','-rf',str(path_temp)], check=True)
+        #subprocess.run(['rm','-rf',str(path_temp)], check=True)
         # mkdir veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
         # wget --output-document=./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2
         # tar xvfj ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 -C ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
