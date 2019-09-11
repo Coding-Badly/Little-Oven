@@ -319,9 +319,9 @@ then
 else
     echo "No Rust."
 fi
-""".encode("ascii")
+"""  # .encode("ascii")
         path_check_for_rust = pathlib.Path('/etc/profile.d/check_for_rust.sh')
-        path_check_for_rust.write(check_for_rust)
+        path_check_for_rust.write_text(check_for_rust)
         path_check_for_rust.chmod(MODE_EXECUTABLE)
         #subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
         #path_rustup_rs.unlink()
