@@ -313,7 +313,7 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         # Write the following to /etc/profile.d/check_for_rust.sh and make it
         # executable.
         check_for_rust = """#!/bin/bash
-if [ ! -e $HOME/.cargo ]
+if [ ! -e $HOME/.cargo ]; then
     rustup.sh -y
 fi
 """
