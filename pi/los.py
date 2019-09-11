@@ -33,6 +33,7 @@ import os
 import pathlib
 import pwd
 import requests
+import stat
 import subprocess
 import time
 import uuid
@@ -102,6 +103,8 @@ csm = CurrentStepManager()
 
 path_los_json = pathlib.Path('los.json')
 check_global_config()
+
+MODE_EXECUTABLE = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH
 
 need_reboot = False
 
@@ -301,11 +304,27 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         go_again = True
         csm.increment_current_step()
     elif csm.get_current_step() == 18:
-        wall_and_print('Install Rust.', csm.get_current_step())
-        path_rustup_rs = pathlib.Path('rustup.sh')
+        wall_and_print('Configure Rust to install at login.', csm.get_current_step())
+        # Download rustup.sh to a common location and make it Read + Execute
+        # for everyone.  Writable for the owner (root).
+        path_rustup_rs = pathlib.Path('/usr/local/bin/rustup.sh')
         simple_get('https://sh.rustup.rs', path_rustup_rs)
-        subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
-        path_rustup_rs.unlink()
+        path_rustup_rs.chmod(MODE_EXECUTABLE)
+        # Write the following to /etc/profile.d/check_for_rust.sh and make it
+        # executable.
+        check_for_rust = """#!/bin/bash
+if [ -e $HOME/.cargo ]
+then
+    echo "Have Rust."
+else
+    echo "No Rust."
+fi
+""".encode("ascii")
+        path_check_for_rust = pathlib.Path('/etc/profile.d/check_for_rust.sh')
+        path_check_for_rust.write_text(check_for_rust)
+        path_check_for_rust.chmod(MODE_EXECUTABLE)
+        #subprocess.run(['bash',str(path_rustup_rs),'-y'], check=True)
+        #path_rustup_rs.unlink()
         # So the path is correct enabling Cargo and Rust to be used in subsequent steps.
         #need_reboot = True
         #csm.increment_current_step()

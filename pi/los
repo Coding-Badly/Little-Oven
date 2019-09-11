@@ -28,7 +28,7 @@ mkdir $LOS_ROOT || true
 # Create the service description.
 cat > $LOS_ROOT/los.service << EOL
 [Unit]
-Description=RFID-KeyMaster Setup
+Description=Little-Oven Setup
 After=network.target
 
 [Service]
