@@ -304,26 +304,21 @@ locales\tlocales/default_environment_locale\tselect\ten_US.UTF-8
         go_again = True
         csm.increment_current_step()
     elif csm.get_current_step() == 18:
-        wall_and_print('Configure Rust to install at login.', csm.get_current_step())
+        wall_and_print('Configure Rust to be easily installed.', csm.get_current_step())
         # Download rustup.sh to a common location and make it Read + Execute
         # for everyone.  Writable for the owner (root).
-        path_rustup_rs = pathlib.Path('/usr/local/bin/rustup.sh')
-        simple_get('https://sh.rustup.rs', path_rustup_rs)
-        path_rustup_rs.chmod(MODE_EXECUTABLE)
-        # Write the following to /etc/profile.d/check_for_rust.sh and make it
-        # executable.
-        check_for_rust = """#!/bin/bash
-if [ ! -e $HOME/.cargo ]; then
-    rustup.sh -y
-fi
-"""
-        path_check_for_rust = pathlib.Path('/etc/profile.d/check_for_rust.sh')
-        path_check_for_rust.write_text(check_for_rust)
-        path_check_for_rust.chmod(MODE_EXECUTABLE)
+        path_rustup_sh = pathlib.Path('/usr/local/bin/rustup.sh')
+        simple_get('https://sh.rustup.rs', path_rustup_sh)
+        path_rustup_sh.chmod(MODE_EXECUTABLE)
         go_again = True
         csm.increment_current_step()
     elif csm.get_current_step() == 19:
-        wall_and_print('Install VeraCrypt.', csm.get_current_step())
+        wall_and_print('Install FUSE (support for VeraCrypt).', csm.get_current_step())
+        subprocess.run(['apt-get','-y','install','fuse'], check=True)
+        go_again = True
+        csm.increment_current_step()
+    elif csm.get_current_step() == 20:
+        wall_and_print('Configure VeraCrypt to be easily installed.', csm.get_current_step())
         # Prepare a directory for the VeraCrypt files.
         dm = DirectoryMaker(default_final_mode=0o755)
         path_temp = pathlib.Path('./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW')
@@ -333,19 +328,39 @@ fi
         simple_get('https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2', path_tar_bz2)
         # Extract the contents
         subprocess.run(['tar','xvfj',str(path_tar_bz2),'-C',str(path_temp)], check=True)
-        path_setup = path_temp / 'veracrypt-1.21-setup-console-armv7'
-        # Run the install script
-        subprocess.run(['bash',str(path_setup),'--quiet'], check=True)
+        path_src = path_temp / 'veracrypt-1.21-setup-console-armv7'
+        path_dst = pathlib.Path('/usr/local/bin/veracrypt-setup')
+        # Copy the console setup to a location on the PATH
+        subprocess.run(['cp',str(path_src),str(path_dst)], check=True)
         # Remove the temporary directory
-        #subprocess.run(['rm','-rf',str(path_temp)], check=True)
+        subprocess.run(['rm','-rf',str(path_temp)], check=True)
+        # Run the install script
+        #subprocess.run(['bash',str(path_setup),'--quiet'], check=True)
         # mkdir veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
         # wget --output-document=./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 https://launchpad.net/veracrypt/trunk/1.21/+download/veracrypt-1.21-raspbian-setup.tar.bz2
         # tar xvfj ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-setup.tar.bz2 -C ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
         # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --check
         # ./veracrypt_CErQ2nnwvZCVeKQHhLV24TWW/veracrypt-1.21-setup-console-armv7 --quiet
         # rm -rf veracrypt_CErQ2nnwvZCVeKQHhLV24TWW
-        #go_again = True
-        #csm.increment_current_step()
+        go_again = True
+        csm.increment_current_step()
+    elif csm.get_current_step() == 21:
+        wall_and_print('Check for Rust and VeraCrypt after login.', csm.get_current_step())
+        # Write the following to /etc/profile.d/check_for_rust_and_veracrypt.sh and make it
+        # executable.
+        check_for_rust_and_veracrypt = """#!/bin/bash
+if [ ! -e $HOME/.cargo ]; then
+    rustup.sh -y
+fi
+if ! command -v veracrypt; then
+    veracrypt-setup
+fi
+"""
+        path_check_for = pathlib.Path('/etc/profile.d/check_for_rust_and_veracrypt.sh')
+        path_check_for.write_text(check_for_rust_and_veracrypt)
+        path_check_for.chmod(MODE_EXECUTABLE)
+        go_again = True
+        csm.increment_current_step()
     #elif csm.get_current_step() == 20:
     #    wall_and_print('One last reboot for good measure.', csm.get_current_step())
     #    need_reboot = True
